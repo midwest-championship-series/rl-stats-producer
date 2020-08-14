@@ -8,16 +8,23 @@ def handler(event, context):
     # print("Your numpy array:")
     # print(a)
 
-    response = {
-        "statusCode": 200,
-        "body": {
-            "success": True,
-            "length": len(json.dumps(analyzeGame()))
-        }
-        # "body": json.dumps(a)
-    }
-    print(response)
-    return response
+    gameData = analyzeGame()
+
+    # print(gameData.keys())
+
+    # response = {
+    #     "statusCode": 200,
+    #     "body": {
+    #         "success": True,
+    #         "length": len(json.dumps(gameData))
+    #     }
+    #     # "body": json.dumps(a)
+    # }
+    # print(response)
+    # return response
+    jsonData = json.dumps(gameData)
+    # print(jsonData)
+    return jsonData
 
 if __name__ == "__main__":
     handler(None, None)

@@ -21,6 +21,7 @@ node_modules/
 yarn.lock
 temp/
 **/__pycache__/
+.DS_Store
 
 # Serverless directories
 .serverless

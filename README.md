@@ -14,11 +14,19 @@ Install [node](https://nodejs.org/en/download/)
 
 Install [yarn](https://classic.yarnpkg.com/en/docs/install/#mac-stable)
 
+Install serverless with `npm i -g serverless`
+
 Create virtual environment in this directory
 `virtualenv venv --python=python3.7.6`
 
 Activate it
 `source venv/bin/activate`
+
+### Deploy
+
+Deploy with serverless
+
+`sls deploy`
 
 ## Notes:
 

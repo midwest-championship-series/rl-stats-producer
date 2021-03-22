@@ -28,6 +28,13 @@ provider:
   stage: ${opt:stage, 'dev'}
   versionFunctions: false
   endpointType: REGIONAL
+  environment:
+    SERVERLESS_REGION: ${self:provider.region}
+    SERVERLESS_STAGE: ${self:provider.stage}
+    SERVERLESS_ACCOUNT_ID:
+      Ref: AWS::AccountId
+    REPLAY_BUCKET: ${self:resources.Outputs.ReplayBucket.Value}
+    EVENT_STATS_BUCKET: ${self:resources.Outputs.EventStatsBucket.Value}
   
 
 # you can overwrite defaults here
@@ -92,3 +99,21 @@ functions:
     name: ${self:service}-process-game-${self:provider.stage}
     memorySize: 3008
     timeout: 10
+
+resources:
+  Resources:
+    ReplayBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-replays-${self:provider.stage}-${self:provider.region}
+    EventStatsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-event-stats-${self:provider.stage}-${self:provider.region}
+  Outputs:
+    ReplayBucket:
+      Value:
+        Ref: ReplayBucket
+    EventStatsBucket:
+      Value:
+        Ref: EventStatsBucket

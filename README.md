@@ -17,7 +17,7 @@ Install [yarn](https://classic.yarnpkg.com/en/docs/install/#mac-stable)
 Install serverless with `npm i -g serverless`
 
 Create virtual environment in this directory
-`virtualenv venv --python=python3.7.6`
+`virtualenv venv --python=python3.8`
 
 Activate it
 `source venv/bin/activate`

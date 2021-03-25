@@ -1,25 +1,4 @@
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.
-# It's very minimal at this point and uses default values.
-# You can always add more config options for more control.
-# We've included some commented out config examples here.
-# Just uncomment any of them to get that config option.
-#
-# For full config options, check the docs:
-#    docs.serverless.com
-#
-# Happy Coding!
-
 service: rl-stats-producer
-# app and org for use with dashboard.serverless.com
-#app: rl-stats-producer-app
-#org: rayam
-
-# You can pin your service to only deploy with a specific Serverless version
-# Check out our docs for more details
-# frameworkVersion: "=X.X.X"
-
 provider:
   name: aws
   runtime: python3.8
@@ -52,39 +31,13 @@ provider:
       Resource:
         - '*'
 
-
-# you can overwrite defaults here
-#  stage: dev
-#  region: us-east-1
-
-# you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:PutObject"
-#      Resource:
-#        Fn::Join:
-#          - ""
-#          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"
-#            - "/*"
-
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
-
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.py
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.py
-#    - exclude-me-dir/**
+  environment:
+    SERVERLESS_REGION: ${self:provider.region}
+    SERVERLESS_STAGE: ${self:provider.stage}
+    SERVERLESS_ACCOUNT_ID:
+      Ref: AWS::AccountId
+    REPLAY_BUCKET: ${self:resources.Outputs.ReplayBucket.Value}
+    EVENT_STATS_BUCKET: ${self:resources.Outputs.EventStatsBucket.Value}
 
 plugins:
   - serverless-python-requirements
@@ -117,4 +70,22 @@ functions:
     package: {}
     name: ${self:service}-process-game-${self:provider.stage}
     memorySize: 3008
-    timeout: 11
+    timeout: 10
+
+resources:
+  Resources:
+    ReplayBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-replays-${self:provider.stage}-${self:provider.region}
+    EventStatsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-event-stats-${self:provider.stage}-${self:provider.region}
+  Outputs:
+    ReplayBucket:
+      Value:
+        Ref: ReplayBucket
+    EventStatsBucket:
+      Value:
+        Ref: EventStatsBucket

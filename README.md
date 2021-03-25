@@ -18,9 +18,13 @@ Install serverless with `npm i -g serverless`
 
 Create virtual environment in this directory
 `virtualenv venv --python=python3.7.6`
+- if RuntimeError, try specifying top-level version (3.7, instead of 3.7.6)
+`virtualenv venv --python=python3.7`
 
 Activate it
 `source venv/bin/activate`
+- if on Windows OS
+`<venv>\Scripts\activate.bat`
 
 ### Deploy
 

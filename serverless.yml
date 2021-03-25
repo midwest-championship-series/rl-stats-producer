@@ -13,8 +13,8 @@
 
 service: rl-stats-producer
 # app and org for use with dashboard.serverless.com
-#app: your-app-name
-#org: your-org-name
+#app: rl-stats-producer-app
+#org: rayam
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -28,7 +28,30 @@ provider:
   stage: ${opt:stage, 'dev'}
   versionFunctions: false
   endpointType: REGIONAL
-  
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - states:StartExecution
+        - s3:*
+        - dynamodb:*
+        - rds:*
+      Resource:
+        - '*'
+    - Effect: Allow
+      Action:
+        - sqs:ListQueues
+        - sqs:DeleteMessage
+        - sqs:GetQueueUrl
+        - sqs:ReceiveMessage
+        - sqs:SendMessage
+      Resource:
+        - '*'
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetSecretValue
+      Resource:
+        - '*'
+
 
 # you can overwrite defaults here
 #  stage: dev
@@ -80,6 +103,8 @@ package:
     - venv/**
     - .env
     - build/**
+    - aws_creds.py
+    - .idea/*
 
 custom:
   pythonRequirements:
@@ -88,7 +113,8 @@ custom:
 functions:
   # analyzes a replay file and produces its stats
   process-game:
-    handler: handler.handler
+    handler: handler.hello
+    package: {}
     name: ${self:service}-process-game-${self:provider.stage}
     memorySize: 3008
-    timeout: 10
+    timeout: 11

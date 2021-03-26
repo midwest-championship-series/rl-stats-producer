@@ -17,9 +17,8 @@ Install [yarn](https://classic.yarnpkg.com/en/docs/install/#mac-stable)
 Install serverless with `npm i -g serverless`
 
 Create virtual environment in this directory
-`virtualenv venv --python=python3.7.6`
-- if RuntimeError, try specifying top-level version (3.7, instead of 3.7.6)
 `virtualenv venv --python=python3.8`
+Note: versions < 3.8 will not work as they do not have required glibc dependencies in lambda image
 
 Activate it
 `source venv/bin/activate`

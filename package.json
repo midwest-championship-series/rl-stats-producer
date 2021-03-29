@@ -3,19 +3,19 @@
   "version": "1.0.0",
   "description": "a python hting",
   "main": "index.js",
-  "license": "MIT",
+  "private": true,
   "dependencies": {},
   "devDependencies": {
     "serverless-python-requirements": "github:T-Tmnr/serverless-python-requirements#fix-issue-274"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "deploy": "sls deploy",
+    "deploy:prod": "sls deploy -s prod"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mn-rocket-league/rl-stats-producer.git"
   },
-  "author": "",
   "bugs": {
     "url": "https://github.com/mn-rocket-league/rl-stats-producer/issues"
   },

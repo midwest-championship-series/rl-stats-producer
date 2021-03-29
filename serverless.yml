@@ -72,7 +72,7 @@ functions:
     package: {}
     name: ${self:service}-process-game-${self:provider.stage}
     memorySize: 3008
-    timeout: 10
+    timeout: 60
     events:
       - s3:
           bucket: ${self:resources.Resources.ReplayBucket.Properties.BucketName}

@@ -23,6 +23,7 @@ temp/
 **/__pycache__/
 .DS_Store
 aws_creds.py
+.idea/*
 
 # Serverless directories
 .serverless

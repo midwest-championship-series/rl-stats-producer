@@ -24,6 +24,7 @@ temp/
 .DS_Store
 aws_creds.py
 .idea/*
+*.json
 
 # Serverless directories
 .serverless

@@ -38,6 +38,9 @@ provider:
       Ref: AWS::AccountId
     REPLAY_BUCKET: ${self:resources.Outputs.ReplayBucket.Value}
     EVENT_STATS_BUCKET: ${self:resources.Outputs.EventStatsBucket.Value}
+    ERROR_CHANNEL_ID: 692994579305332806
+    RL_BOT_URL: https://rl-rank-bot.herokuapp.com
+
 
 plugins:
   - serverless-python-requirements
@@ -60,6 +63,8 @@ package:
     - aws_creds.py
     - .idea/*
     - ./*.gzip
+    - ./*.json
+    - ./*.replay
 
 custom:
   pythonRequirements:

@@ -18,9 +18,12 @@ Install serverless with `npm i -g serverless`
 
 Create virtual environment in this directory
 `virtualenv venv --python=python3.8`
+Note: versions < 3.8 will not work as they do not have required glibc dependencies in lambda image
 
 Activate it
 `source venv/bin/activate`
+- if on Windows OS
+`<venv>\Scripts\activate.bat`
 
 ### Deploy
 

@@ -22,6 +22,9 @@ yarn.lock
 temp/
 **/__pycache__/
 .DS_Store
+aws_creds.py
+.idea/*
+*.json
 
 # Serverless directories
 .serverless

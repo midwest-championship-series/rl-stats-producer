@@ -54,7 +54,6 @@ def handler(event, context):
     else:
         if gameData:
             if event_bucket is not None:
-                print(gameData.keys())
                 s3_client.put_object(
                     Bucket=event_bucket,
                     Key=f'{gameData["gameMetadata"]["matchGuid"]}.json',

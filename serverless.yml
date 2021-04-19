@@ -93,6 +93,10 @@ resources:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: ${self:service}-event-stats-${self:provider.stage}-${self:provider.region}
+        LifecycleConfiguration:
+          Rules:
+            - ExpirationInDays: 1
+              Status: Enabled
   Outputs:
     ReplayBucket:
       Value:

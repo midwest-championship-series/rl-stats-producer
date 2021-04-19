@@ -54,15 +54,15 @@ def handler(event, context):
     else:
         if gameData:
             if event_bucket is not None:
-                s3_client.upload_file(f'/tmp/output.json',
-                                      event_bucket,
-                                      f'analysis_{key.split(".replay")[0]}.json')
+                s3_client.put_object(
+                    Bucket=event_bucket,
+                    Key=f'{gameData["gameMetadata"]["matchGuid"]}.json',
+                    ACL='private',
+                    Body=json.dumps(gameData)
+                )
 
         if os.path.exists(f"/tmp/curr_replay_{key}"):
             os.remove(f"/tmp/curr_replay_{key}")
-
-        if os.path.exists(f'/tmp/output.json'):
-            os.remove(f'/tmp/output.json')
 
         return
 

@@ -7,40 +7,43 @@ provider:
   stage: ${opt:stage, 'dev'}
   versionFunctions: false
   endpointType: REGIONAL
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - states:StartExecution
-        - s3:*
-        - dynamodb:*
-        - rds:*
-      Resource:
-        - '*'
-    - Effect: Allow
-      Action:
-        - sqs:ListQueues
-        - sqs:DeleteMessage
-        - sqs:GetQueueUrl
-        - sqs:ReceiveMessage
-        - sqs:SendMessage
-      Resource:
-        - '*'
-    - Effect: Allow
-      Action:
-        - secretsmanager:GetSecretValue
-      Resource:
-        - '*'
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - states:StartExecution
+            - s3:*
+            - rds:*
+            - events:PutEvents
+            - events:RemoveTargets
+            - lambda:InvokeFunction
+          Resource:
+            - '*'
+        - Effect: Allow
+          Action:
+            - sqs:ListQueues
+            - sqs:DeleteMessage
+            - sqs:GetQueueUrl
+            - sqs:ReceiveMessage
+            - sqs:SendMessage
+          Resource:
+            - '*'
+        - Effect: Allow
+          Action:
+            - secretsmanager:GetSecretValue
+          Resource:
+            - '*'
 
   environment:
     SERVERLESS_REGION: ${self:provider.region}
     SERVERLESS_STAGE: ${self:provider.stage}
     SERVERLESS_ACCOUNT_ID:
       Ref: AWS::AccountId
-    REPLAY_BUCKET: ${self:resources.Outputs.ReplayBucket.Value}
     EVENT_STATS_BUCKET: ${self:resources.Outputs.EventStatsBucket.Value}
-    ERROR_CHANNEL_ID: 692994579305332806
+    ERROR_CHANNEL_ID: '692994579305332806'
     RL_BOT_URL: https://rl-rank-bot.herokuapp.com
-
+    RL_STATS_EVENT_BUS: ${cf:rl-stats-${self:provider.stage}.RLStatsEventBus}
 
 plugins:
   - serverless-python-requirements
@@ -72,23 +75,22 @@ custom:
 
 functions:
   # analyzes a replay file and produces its stats
-  process-game:
+  process-match-replays:
     handler: handler.handler
     package: {}
-    name: ${self:service}-process-game-${self:provider.stage}
+    name: ${self:service}-process-match-replays-${self:provider.stage}
     memorySize: 3008
+    reservedConcurrency: 1 # makes sure that only one event is being processed at a time
     timeout: 60
     events:
-      - s3:
-          bucket: ${self:resources.Resources.ReplayBucket.Properties.BucketName}
-          existing: true
+      - eventBridge:
+          eventBus: ${cf:rl-stats-${self:provider.stage}.RLStatsEventBusArn}
+          pattern:
+            detail-type:
+              - MATCH_PROCESS_REPLAYS_OBTAINED
 
 resources:
   Resources:
-    ReplayBucket:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: ${self:service}-replays-${self:provider.stage}-${self:provider.region}
     EventStatsBucket:
       Type: AWS::S3::Bucket
       Properties:
@@ -98,9 +100,6 @@ resources:
             - ExpirationInDays: 1
               Status: Enabled
   Outputs:
-    ReplayBucket:
-      Value:
-        Ref: ReplayBucket
     EventStatsBucket:
       Value:
         Ref: EventStatsBucket

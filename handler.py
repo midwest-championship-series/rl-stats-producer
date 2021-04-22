@@ -59,7 +59,7 @@ def handler(event, context):
             if os.path.exists(f"/tmp/curr_replay_{key}"):
                 os.remove(f"/tmp/curr_replay_{key}")
 
-            return
+    return
 
 # to test the output of the json, from the file object in the s3 bucket
 # def read_file_contents(fname=None):

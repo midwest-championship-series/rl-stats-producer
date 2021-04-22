@@ -12,12 +12,9 @@ def handler(event, context):
     event_bucket = os.environ.get("EVENT_STATS_BUCKET", None)
     s3_client = boto3.client('s3')
 
-    for replay in event['detail']['replays']:
-        key = replay['bucket']['key']
-        replay_bucket = replay['bucket']['source']
-        print(key)
-        print(replay_bucket)
-        print('beginning download')
+    for replay in event.get('detail', {}).get('replays', []):
+        key = replay.get('bucket', {}).get('key')
+        replay_bucket = replay.get('bucket', {}).get('source')
 
         s3_client.download_file(replay_bucket, key, f"/tmp/curr_replay_{key}")
 

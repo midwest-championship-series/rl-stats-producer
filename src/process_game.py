@@ -1,19 +1,11 @@
-  
-import os
-import gzip
-import json
-from carball.decompile_replays import decompile_replay
-from carball.json_parser.game import Game
-from carball.analysis.analysis_manager import AnalysisManager
+from carball.decompile_replays import analyze_replay_file
+
 
 def analyzeGame(fname):
-  _json = decompile_replay(fname)
-  game = Game()
-  game.initialize(loaded_json=_json)
-  analysis_manager = AnalysisManager(game)
-  analysis_manager.create_analysis(calculate_intensive_events=True)
-  return analysis_manager.get_json_data()
+    analysis = analyze_replay_file(replay_path=fname, calculate_intensive_events=True, clean=True)
+    return analysis.get_json_data()
+
 
 #
-if __name__=='__main__':
-  pass
+if __name__ == '__main__':
+    pass

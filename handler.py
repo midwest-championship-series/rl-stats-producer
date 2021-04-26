@@ -66,6 +66,8 @@ def handler(event, context):
     process_end_event = {
         'type': 'MATCH_PROCESS_REPLAYS_PARSED',
         'detail': {
+            'league_id': event.get('detail').get('league_id'),
+            'reply_to_channel': event.get('detail').get('reply_to_channel'),
             'parsed_replays': parsed_replays
         }
     }

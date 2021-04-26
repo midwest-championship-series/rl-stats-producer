@@ -10,7 +10,10 @@ def send_message_to_channel(channel_id, message):
         "Content-Type": "application/json"
     }
     request_url = f"{bot_url}/api/v1/channels/{channel_id}"
-    response = requests.post(url=request_url, data=json.dumps(message), headers=headers)
+    body = {
+        'message': message
+    }
+    response = requests.post(url=request_url, data=json.dumps(body), headers=headers)
 
     if response.status_code != 200:
         raise ValueError(f'Received a non-200 response code from the call to the RL BOT: {response.status_code}')
@@ -21,4 +24,4 @@ def send_error_to_channel(context=None, error=None):
     if error is None:
         error = 'An unknown error has occured, check logs for further assistance.'
     message = f'context: {context}\nError: {error}'
-    send_message_to_channel(error_channel_id, message)
+    return send_message_to_channel(error_channel_id, message)

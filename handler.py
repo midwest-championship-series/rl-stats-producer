@@ -2,23 +2,23 @@ import json
 from src.process_game import analyzeGame
 import boto3
 import os
-from src.services import error_handling
+from src.services import rl_bot, rl_platform
 import sys
 
 # from aws_creds import creds
 
+event_bucket = os.environ.get("EVENT_STATS_BUCKET", None)
+s3_client = boto3.client('s3')
 
 def handler(event, context):
-    event_bucket = os.environ.get("EVENT_STATS_BUCKET", None)
-    s3_client = boto3.client('s3')
-
+    parsed_replays = []
     for replay in event.get('detail', {}).get('replays', []):
-        key = replay.get('bucket', {}).get('key')
-        replay_bucket = replay.get('bucket', {}).get('source')
-
-        s3_client.download_file(replay_bucket, key, f"/tmp/curr_replay_{key}")
-
         try:
+            key = replay.get('bucket').get('key')
+            replay_bucket = replay.get('bucket').get('source')
+
+            s3_client.download_file(replay_bucket, key, f"/tmp/curr_replay_{key}")
+
             print('beginning analysis')
             gameData = analyzeGame(fname=f"/tmp/curr_replay_{key}")
 
@@ -27,13 +27,10 @@ def handler(event, context):
                 os.remove(f"/tmp/curr_replay_{key}")
 
             try:
-                bot_url = os.environ.get('RL_BOT_URL', None)
-                channel_id = os.environ.get('ERROR_CHANNEL_ID', None)
-                request_url = f"{bot_url}/api/v1/channels/{channel_id}"
-                error_msg = {
-                    "message": f"context: analyzeGame failure\nerror: {sys.exc_info()[0]}"
-                }
-                error_handling.send_message_via_bot(url=request_url, message=error_msg)
+                rl_bot.send_error_to_channel(
+                    context=f'parsing replay: {key} from location: {replay_bucket}',
+                    error=sys.exc_info()[0]
+                )
 
             except (ValueError) as e:
                 raise ValueError(f'Failed to make a successful call to the '
@@ -46,18 +43,33 @@ def handler(event, context):
             return
 
         else:
-            if gameData:
-                if event_bucket is not None:
-                    print(f"uploading {key}")
-                    s3_client.put_object(
-                        Bucket=event_bucket,
-                        Key=f"{key.split('.replay')[0]}.json",
-                        ACL='private',
-                        Body=json.dumps(gameData)
-                    )
+            if event_bucket is not None:
+                print(f"uploading {key}")
+                output_key=f"{key.split('.replay')[0]}.json"
+                s3_client.put_object(
+                    Bucket=event_bucket,
+                    Key=output_key,
+                    ACL='private',
+                    Body=json.dumps(gameData)
+                )
+                parsed_replays.append({
+                    'id': replay.get('id'),
+                    'upload_source': replay.get('upload_source'),
+                    'bucket': {
+                        'key': output_key,
+                        'source': event_bucket
+                    }
+                })
 
             if os.path.exists(f"/tmp/curr_replay_{key}"):
                 os.remove(f"/tmp/curr_replay_{key}")
+    process_end_event = {
+        'type': 'MATCH_PROCESS_REPLAYS_PARSED',
+        'detail': {
+            'parsed_replays': parsed_replays
+        }
+    }
+    rl_platform.send_event(process_end_event)
 
     return
 

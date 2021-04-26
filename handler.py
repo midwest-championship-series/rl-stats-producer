@@ -11,9 +11,7 @@ event_bucket = os.environ.get("EVENT_STATS_BUCKET", None)
 s3_client = boto3.client('s3')
 
 def handler(event, context):
-    process_end_event = {
-        'parsed_replays': []
-    }
+    parsed_replays = []
     for replay in event.get('detail', {}).get('replays', []):
         try:
             key = replay.get('bucket').get('key')
@@ -54,7 +52,7 @@ def handler(event, context):
                     ACL='private',
                     Body=json.dumps(gameData)
                 )
-                process_end_event.get('parsed_replays').append({
+                parsed_replays.append({
                     'id': replay.get('id'),
                     'upload_source': replay.get('upload_source'),
                     'bucket': {
@@ -65,6 +63,12 @@ def handler(event, context):
 
             if os.path.exists(f"/tmp/curr_replay_{key}"):
                 os.remove(f"/tmp/curr_replay_{key}")
+    process_end_event = {
+        'type': 'MATCH_PROCESS_REPLAYS_PARSED',
+        'detail': {
+            'parsed_replays': parsed_replays
+        }
+    }
     rl_platform.send_event(process_end_event)
 
     return

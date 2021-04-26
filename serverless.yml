@@ -43,6 +43,8 @@ provider:
     EVENT_STATS_BUCKET: ${self:resources.Outputs.EventStatsBucket.Value}
     ERROR_CHANNEL_ID: '692994579305332806'
     RL_BOT_URL: https://rl-rank-bot.herokuapp.com
+    RL_PLATFORM_API_KEY: ${ssm:producer-api-key~true}
+    RL_PLATFORM_URL: ${cf:rl-stats-${self:provider.stage}.ServiceEndpoint}
 
 plugins:
   - serverless-python-requirements

@@ -48,7 +48,6 @@ provider:
 
 plugins:
   - serverless-python-requirements
-
 package:
   exclude:
     - node_modules/**/aws-sdk/**

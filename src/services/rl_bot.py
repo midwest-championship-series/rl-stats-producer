@@ -5,6 +5,7 @@ import os
 bot_url = os.environ.get('RL_BOT_URL', None)
 error_channel_id = os.environ.get('ERROR_CHANNEL_ID', None)
 
+
 def send_message_to_channel(channel_id, message):
     headers = {
         "Content-Type": "application/json"
@@ -17,6 +18,7 @@ def send_message_to_channel(channel_id, message):
 
     if response.status_code != 200:
         raise ValueError(f'Received a non-200 response code from the call to the RL BOT: {response.status_code}')
+
 
 def send_error_to_channel(context=None, error=None):
     if context is None:

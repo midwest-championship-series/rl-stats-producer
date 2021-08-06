@@ -5,10 +5,9 @@ import os
 from src.services import rl_bot, rl_platform
 import sys
 
-# from aws_creds import creds
-
 event_bucket = os.environ.get("EVENT_STATS_BUCKET", None)
 s3_client = boto3.client('s3')
+
 
 def handler(event, context):
     parsed_replays = []
@@ -27,18 +26,26 @@ def handler(event, context):
                 os.remove(f"/tmp/curr_replay_{key}")
 
             try:
+                e_key, e_value, e_traceback = sys.exc_info()
                 rl_bot.send_error_to_channel(
                     context=f'parsing replay: {key} from location: {replay_bucket}',
-                    error=sys.exc_info()[0]
+                    error={
+                        "key": e_key,
+                        "value": e_value,
+                        "traceback": {
+                            "frame": e_traceback.tb_frame,
+                            "tb_lineno": e_traceback.tb_lineno
+                        }
+                    }
                 )
 
             except (ValueError) as e:
                 raise ValueError(f'Failed to make a successful call to the '
-                                f'RL_BOT: {e}')
+                                 f'RL_BOT: {e}')
 
             except:
                 raise ValueError(f'Failed to make a successful call to the '
-                                f'RL_BOT: {sys.exc_info()[0]}')
+                                 f'RL_BOT: {sys.exc_info()[0]}')
 
             return
 

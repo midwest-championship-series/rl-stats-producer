@@ -60,8 +60,6 @@ def handler(event, context):
                     Body=json.dumps(gameData)
                 )
                 parsed_replays.append({
-                    'id': replay.get('id'),
-                    'upload_source': replay.get('upload_source'),
                     'bucket': {
                         'key': output_key,
                         'source': event_bucket
@@ -70,13 +68,15 @@ def handler(event, context):
 
             if os.path.exists(f"/tmp/curr_replay_{key}"):
                 os.remove(f"/tmp/curr_replay_{key}")
+    detail = {
+        'parsed_replays': parsed_replays
+    }
+    for property, value in event.get('detail').items():
+        if property in ['league_id', 'match_id', 'reply_to_channel']:
+            detail[property] = value
     process_end_event = {
         'type': 'MATCH_PROCESS_REPLAYS_PARSED',
-        'detail': {
-            'league_id': event.get('detail').get('league_id'),
-            'reply_to_channel': event.get('detail').get('reply_to_channel'),
-            'parsed_replays': parsed_replays
-        }
+        'detail': detail
     }
     rl_platform.send_event(process_end_event)
 

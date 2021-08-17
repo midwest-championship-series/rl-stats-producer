@@ -52,7 +52,7 @@ def handler(event, context):
         else:
             if event_bucket is not None:
                 print(f"uploading {key}")
-                output_key=f"{key.split('.replay')[0]}.json"
+                output_key = f"{key.split('.replay')[0]}.json"
                 s3_client.put_object(
                     Bucket=event_bucket,
                     Key=output_key,
@@ -68,12 +68,41 @@ def handler(event, context):
 
             if os.path.exists(f"/tmp/curr_replay_{key}"):
                 os.remove(f"/tmp/curr_replay_{key}")
+
     detail = {
         'parsed_replays': parsed_replays
     }
-    for property, value in event.get('detail').items():
-        if property in ['league_id', 'match_id', 'reply_to_channel']:
-            detail[property] = value
+
+    try:
+        for property, value in event.get('detail').items():
+            if property in ['league_id', 'match_id', 'reply_to_channel']:
+                detail[property] = value
+
+    except (ValueError, TypeError, KeyError, AttributeError) as e:
+        try:
+            e_key, e_value, e_traceback = sys.exc_info()
+            rl_bot.send_error_to_channel(
+                context=f'parsing replay: {key} from location: {replay_bucket}',
+                error={
+                    "key": e_key,
+                    "value": e_value,
+                    "traceback": {
+                        "frame": e_traceback.tb_frame,
+                        "tb_lineno": e_traceback.tb_lineno
+                    }
+                }
+            )
+
+        except ValueError as e:
+            raise ValueError(f'Failed to make a successful call to the '
+                             f'RL_BOT: {e}')
+
+        except:
+            raise ValueError(f'Failed to make a successful call to the '
+                             f'RL_BOT: {sys.exc_info()[0]}')
+
+        return
+
     process_end_event = {
         'type': 'MATCH_PROCESS_REPLAYS_PARSED',
         'detail': detail

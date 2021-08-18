@@ -3,56 +3,63 @@ import sys
 from carball.decompile_replays import analyze_replay_file, decompile_replay
 from carball.json_parser.game import Game
 import logging
-from src.services.rl_bot import send_error_to_channel, send_message_to_channel
 
 
-def analyzeGame(fname):
+def analyze_game(fname):
     _json = decompile_replay(fname)
-    all_players = extract_players(obj=_json)
+    try:
+        all_players = extract_players(obj=_json)
+
+    except (KeyError, AttributeError, ValueError, TypeError) as e:
+        print('failed to extract the player properties from within the _json variable.')
+        raise e
+
     game = Game()
     game.initialize(loaded_json=_json)
 
     # the calculate_intensive_stats is causing the issue!!!! I was able to track it down!
     analysis = analyze_replay_file(replay_path=fname, logging_level=logging.DEBUG, clean=True).get_json_data()
 
-    keepers = []
-    for player in analysis.get('players', []):
-        name = player.get('name')
-        score = player.get('score')
-        if score > 0:
-            keepers.append(name)
+    try:
+        for player in analysis.get('players', [{}]):
+            name = player['name']
+            score = player['score']
+            goals = player['goals']
+            assists = player['assists']
+            saves = player['saves']
+            shots = player['shots']
+            if all_players.get((name, assists, goals, saves, score, shots), None) is not None:
+                player['id']['platform'] = all_players[(name, assists, goals, saves, score, shots)]['platform']
 
-    for player in all_players:
-        if player['name'] not in keepers:
-            all_players.remove(player)
+    except (KeyError, AttributeError, ValueError, TypeError) as e:
+        print('failed to extract the players objects from within the analysis variable.')
+        raise e
 
-    return all_players, analysis
+    return analysis
 
 
 def extract_players(obj):
-    all_players = []
+    all_players = {}
     try:
-        network_frames = obj['network_frames']
-        all_frames = network_frames['frames']
-        frame = all_frames[0]
-        updated_actors = frame['updated_actors']
-        for actor in updated_actors:
-            if actor.get('attribute', None) is not None and \
-                actor.get('attribute', {}).get('Reservation', None) is not None:
-                player_info = actor['attribute']['Reservation']
-                name = player_info['name']
-                unique_id = player_info['unique_id']
-                remote_id = unique_id['remote_id']
-                platform, pid = list(remote_id.items())[0]
-                all_players.append({'name': name, 'platform': platform, 'platform_id': pid})
-                continue
+        properties = obj['properties']
+        for player in properties['PlayerStats']:
+            assists = player['Assists']
+            goals = player['Goals']
+            saves = player['Saves']
+            score = player['Score']
+            shots = player['Shots']
 
-    except:
-        return send_error_to_channel(context="FAILED TO PARSE REPLAY AND EXTRACT PLAYERS", error=sys.exc_info()[0])
+            name = player['Name']
+            platform = player['Platform']['value'].split('_')[1]
+            online_id = player['OnlineID']
+            all_players[(name, assists, goals, saves, score, shots)] = {'online_id': online_id, 'platform': platform}
+
+    except (KeyError, AttributeError, ValueError, TypeError) as e:
+        raise e
 
     return all_players
 
 
-
-# if __name__ == '__main__':
-    # players, replay_json = analyzeGame("/Users/andrewray/Documents/Programming/Python/rl-stats-producer/example.replay")
+if __name__ == '__main__':
+    replay_json = analyze_game("/Users/andrewray/Documents/GitHub/rl-stats-producer/epic_steam_replay.replay")
+    # print(replay_json)
